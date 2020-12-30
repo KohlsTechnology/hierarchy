@@ -1,0 +1,276 @@
+/*
+Copyright 2021 Kohl's Department Stores, Inc.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+	http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+// The main package for the executable
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"os"
+	"path"
+	"path/filepath"
+	"regexp"
+	"strings"
+
+	"github.com/imdario/mergo"
+	"gopkg.in/yaml.v3"
+
+	"github.com/KohlsTechnology/hierarchy/pkg/version"
+	"github.com/kylelemons/godebug/diff"
+	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+	"gopkg.in/alecthomas/kingpin.v2"
+)
+
+type config struct {
+	hierarchyFile   string
+	basePath        string
+	outputFile      string
+	filterExtension string
+	printVersion    bool
+	diffOutput      bool
+	logDebug        bool
+	logTrace        bool
+	failMissing     bool
+}
+
+// Default file filter
+const defaultFileFilter = "(.yaml|.yml|.json)$"
+
+func parseFlags() config {
+	application := kingpin.New(filepath.Base(os.Args[0]), "Hierarchy")
+	application.HelpFlag.Short('h')
+
+	cfg := config{}
+
+	application.Flag("file", "Path and name of the hierarchy file.").Short('f').
+		Envar("HIERARCHY_FILE").Default("./hierarchy.lst").StringVar(&cfg.hierarchyFile)
+	application.Flag("output", "Path and name of the output file.").Short('o').
+		Envar("HIERARCHY_OUTPUT").Default("./output.yaml").StringVar(&cfg.outputFile)
+	application.Flag("filter", "Regex for file extension of files being merged").Short('i').
+		Envar("HIERARCHY_FILTER").Default(defaultFileFilter).StringVar(&cfg.filterExtension)
+	application.Flag("trace", "Prints a diff after processing each file. This generates A LOT of output").
+		Default("false").BoolVar(&cfg.logTrace)
+	application.Flag("failmissing", "Fail if a directory in the hierarchy is missing").Short('m').
+		Default("false").BoolVar(&cfg.failMissing)
+	application.Flag("version", "Print version and build information, then exit").Short('V').
+		Default("false").BoolVar(&cfg.printVersion)
+	application.Flag("debug", "Print debug output").Short('d').
+		Envar("HIERARCHY_DEBUG").Default("false").BoolVar(&cfg.logDebug)
+
+	_, err := application.Parse(os.Args[1:])
+
+	if cfg.printVersion {
+		version.Print()
+		os.Exit(0)
+	}
+
+	if err != nil {
+		fmt.Fprintln(os.Stderr, errors.Wrapf(err, "Error parsing commandline arguments"))
+		application.Usage(os.Args[1:])
+		os.Exit(2)
+	}
+	return cfg
+}
+
+// checkForError fails the program with a fatal error message if e != nil
+func checkForError(e error) {
+	if e != nil {
+		log.Fatal(e)
+	}
+}
+
+func main() {
+	cfg := parseFlags()
+
+	// Get the logging configured the way we want it
+	log.SetOutput(os.Stdout)
+	if cfg.logTrace {
+		log.SetLevel(log.TraceLevel)
+	} else if cfg.logDebug {
+		log.SetLevel(log.DebugLevel)
+	} else {
+		log.SetLevel(log.InfoLevel)
+	}
+
+	version.Log()
+
+	cfg.basePath = path.Dir(cfg.hierarchyFile)
+
+	log.WithFields(log.Fields{
+		"hierarchyFile":     cfg.hierarchyFile,
+		"basePath":          cfg.basePath,
+		"outputFile":        cfg.outputFile,
+		"outputPermissions": cfg.outputFile,
+		"filterExtension":   cfg.filterExtension,
+		"failMissing":       cfg.failMissing,
+	}).Debug("Configuration settings")
+
+	// Make sure we remove the output file if it already exists
+	// Just in case the program ends for any reason other than success
+	// We don't want to give the impression that we completed the merging
+	if _, err := os.Stat(cfg.outputFile); err == nil {
+		log.WithFields(log.Fields{
+			"path": cfg.outputFile,
+		}).Info("Removing existing output file")
+		err := os.Remove(cfg.outputFile)
+		checkForError(err)
+	}
+
+	// process the hierarchy and get the list of include files
+	hierarchy := processHierarchy(cfg)
+
+	// Lets do the deed
+	mergeYamls(hierarchy, cfg.filterExtension, cfg.outputFile)
+}
+
+// processHierarchy loads the hiearchy file and generates a list
+// of folders to be processed
+func processHierarchy(cfg config) []string {
+	hierarchy := []string{}
+	hierarchyFile, err := os.Open(cfg.hierarchyFile)
+	checkForError(err)
+	defer hierarchyFile.Close()
+
+	// Start reading from the file with a reader.
+	reader := bufio.NewReader(hierarchyFile)
+	var line string
+	for {
+		line, err = reader.ReadString('\n')
+		if err != nil && err != io.EOF {
+			break
+		}
+
+		// Trim spaces and comments
+		includePath := strings.Split(line, "#")[0]
+		includePath = strings.TrimSpace(includePath)
+		// TODO write own ExpandEnv that fails if variable is not defined
+		// TODO replace environment variables expansion with go template
+		// Example: https://gist.github.com/raphink/e1afb23300a7e53a0949
+		includePath = os.ExpandEnv(includePath)
+		// Process path
+		if len(includePath) > 0 {
+			includePath = path.Join(cfg.basePath, includePath)
+			// Check if directory exists
+			if stat, err := os.Stat(includePath); err == nil && stat.IsDir() {
+				hierarchy = append(hierarchy, includePath)
+				log.WithFields(log.Fields{
+					"path": includePath,
+				}).Debug("Adding path to hierarchy")
+			} else {
+				if cfg.failMissing {
+					log.WithFields(log.Fields{
+						"path": includePath,
+					}).Fatal("Hierarchy directory not found")
+				} else {
+					log.WithFields(log.Fields{
+						"path": includePath,
+					}).Info("Ignoring missing hierarchy directory")
+				}
+			}
+		}
+
+		// bail if something went wrong or we reached EOF
+		if err != nil {
+			break
+		}
+	}
+	if err != io.EOF {
+		checkForError(err)
+	}
+	return hierarchy
+}
+
+// mergeYamls walks through all the folders in the hierarchy
+// and merges all files matching the pattern into the structure
+// overwriting any existing values
+// and finally exports it as a new YAML file
+func mergeYamls(hierarchy []string, fileFilter string, outputFile string) {
+	// Get all the variables initialized
+	var data map[string]interface{}
+	counter := 0
+
+	for _, includePath := range hierarchy {
+		log.WithFields(log.Fields{
+			"path": includePath,
+		}).Debug("Inspecting folder")
+
+		// Merge in every file matching the pattern
+		for _, file := range getFiles(includePath, fileFilter) {
+			// Generate the old version of the YAML for the compare
+			oldYaml, err := yaml.Marshal(&data)
+			checkForError(err)
+
+			// Import the next file
+			log.WithFields(log.Fields{
+				"path": file,
+			}).Info("Importing file")
+			mergeFile, err := ioutil.ReadFile(file)
+			checkForError(err)
+			mergeData := make(map[string]interface{})
+			err = yaml.Unmarshal([]byte(mergeFile), &mergeData)
+			checkForError(err)
+
+			err = mergo.Merge(&data, mergeData, mergo.WithOverride)
+			checkForError(err)
+
+			// Generate the new YAML and print the unified diff to the trace output
+			newYaml, err := yaml.Marshal(&data)
+			checkForError(err)
+			log.Trace(diff.Diff(string(oldYaml), string(newYaml)))
+
+			counter++
+		}
+	}
+
+	log.WithFields(log.Fields{
+		"count": counter,
+	}).Info("Completed merging all files")
+
+	// Let's get the results written out
+	log.WithFields(log.Fields{
+		"path": outputFile,
+	}).Info("Writing output file")
+	yamlDoc, err := yaml.Marshal(&data)
+	err = ioutil.WriteFile(outputFile, yamlDoc, 0660)
+
+	checkForError(err)
+}
+
+// getFiles lists all the file in a path and returns those matching the fileFilter
+func getFiles(includePath string, fileFilter string) []string {
+	var includeFiles []string
+	files, err := ioutil.ReadDir(includePath)
+	checkForError(err)
+	for _, fileInfo := range files {
+		if !fileInfo.IsDir() {
+			filePath := path.Join(includePath, fileInfo.Name())
+			r, err := regexp.MatchString(fileFilter, fileInfo.Name())
+			if err == nil && r {
+				includeFiles = append(includeFiles, filePath)
+				log.WithFields(log.Fields{
+					"file": filePath,
+				}).Debug("Adding file to list")
+			} else {
+				log.WithFields(log.Fields{
+					"file": filePath,
+				}).Debug("Ignoring file")
+			}
+		}
+	}
+
+	return includeFiles
+}
