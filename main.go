@@ -96,7 +96,7 @@ func checkForError(e error) {
 func main() {
 	cfg := parseFlags()
 
-	// Get the logging configured the way we want it
+	// Configure different logging levels
 	log.SetOutput(os.Stdout)
 	if cfg.logTrace {
 		log.SetLevel(log.TraceLevel)
@@ -130,14 +130,14 @@ func main() {
 		checkForError(err)
 	}
 
-	// process the hierarchy and get the list of include files
+	// Process the hierarchy and get the list of files to be included
 	hierarchy := processHierarchy(cfg)
 
-	// Lets do the deed
+	// Proceed with merging YAML files
 	mergeYamls(hierarchy, cfg.filterExtension, cfg.outputFile)
 }
 
-// processHierarchy loads the hiearchy file and generates a list
+// processHierarchy loads the hierarchy file and generates a file paths list
 // of folders to be processed
 func processHierarchy(cfg config) []string {
 	hierarchy := []string{}
@@ -167,8 +167,10 @@ func processHierarchy(cfg config) []string {
 			// Check if directory exists
 			if stat, err := os.Stat(includePath); err == nil && stat.IsDir() {
 				hierarchy = append(hierarchy, includePath)
+				absPath, _ := filepath.Abs(includePath)
 				log.WithFields(log.Fields{
 					"path": includePath,
+					"abs_path": absPath,
 				}).Debug("Adding path to hierarchy")
 			} else {
 				if cfg.failMissing {
@@ -183,7 +185,7 @@ func processHierarchy(cfg config) []string {
 			}
 		}
 
-		// bail if something went wrong or we reached EOF
+		// Break the for loop on error including EOF
 		if err != nil {
 			break
 		}
@@ -199,7 +201,7 @@ func processHierarchy(cfg config) []string {
 // overwriting any existing values
 // and finally exports it as a new YAML file
 func mergeYamls(hierarchy []string, fileFilter string, outputFile string) {
-	// Get all the variables initialized
+	// Initialize variables
 	var data map[string]interface{}
 	counter := 0
 
@@ -210,7 +212,7 @@ func mergeYamls(hierarchy []string, fileFilter string, outputFile string) {
 
 		// Merge in every file matching the pattern
 		for _, file := range getFiles(includePath, fileFilter) {
-			// Generate the old version of the YAML for the compare
+			// Generate an old version of YAML for comparison
 			oldYaml, err := yaml.Marshal(&data)
 			checkForError(err)
 
@@ -240,7 +242,7 @@ func mergeYamls(hierarchy []string, fileFilter string, outputFile string) {
 		"count": counter,
 	}).Info("Completed merging all files")
 
-	// Let's get the results written out
+	// Writing the output file
 	log.WithFields(log.Fields{
 		"path": outputFile,
 	}).Info("Writing output file")
@@ -250,7 +252,7 @@ func mergeYamls(hierarchy []string, fileFilter string, outputFile string) {
 	checkForError(err)
 }
 
-// getFiles lists all the file in a path and returns those matching the fileFilter
+// getFiles lists all files in a given path and returns a list of matching the fileFilter
 func getFiles(includePath string, fileFilter string) []string {
 	var includeFiles []string
 	files, err := ioutil.ReadDir(includePath)
