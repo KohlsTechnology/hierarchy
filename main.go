@@ -169,7 +169,7 @@ func processHierarchy(cfg config) []string {
 				hierarchy = append(hierarchy, includePath)
 				absPath, _ := filepath.Abs(includePath)
 				log.WithFields(log.Fields{
-					"path": includePath,
+					"path":     includePath,
 					"abs_path": absPath,
 				}).Debug("Adding path to hierarchy")
 			} else {
