@@ -53,7 +53,7 @@ func TestProcessHierarchy(t *testing.T) {
 	assert.Equal(t, expected, result)
 }
 
-func TestFailEmpty(t *testing.T) {
+func TestFailMissing(t *testing.T) {
 	if os.Getenv("TEST_FAIL_EMPTY") == "1" {
 		var cfg config
 		cfg.hierarchyFile = "testdata/test1/hierarchy.lst"
@@ -69,7 +69,7 @@ func TestFailEmpty(t *testing.T) {
 		return
 	}
 
-	cmd := exec.Command(os.Args[0], "-test.run=TestFailEmpty")
+	cmd := exec.Command(os.Args[0], "-test.run=TestFailMissing")
 	cmd.Env = append(os.Environ(), "TEST_FAIL_EMPTY=1")
 	err := cmd.Run()
 	if e, ok := err.(*exec.ExitError); ok && !e.Success() {
