@@ -35,13 +35,6 @@ func TestGetFiles(t *testing.T) {
 	expected = []string{"testdata/yaml/one.yaml", "testdata/yaml/two.yml"}
 	result = getFiles("testdata/yaml", defaultFileFilter)
 	assert.Equal(t, expected, result)
-
-	// assert.Nil(t, err, "failed to process query")
-	// assert.Len(t, result.Results, 1)
-	// assert.Len(t, result.Results[0].Timeseries, 1)
-	// assert.Len(t, result.Results[0].Timeseries[0].Samples, 3)
-	// assert.Equal(t, timeseries, result.Results[0].Timeseries)
-
 }
 
 func TestProcessHierarchy(t *testing.T) {
