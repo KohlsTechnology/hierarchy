@@ -93,50 +93,6 @@ func checkForError(e error) {
 	}
 }
 
-func main() {
-	cfg := parseFlags()
-
-	// Configure different logging levels
-	log.SetOutput(os.Stdout)
-	if cfg.logTrace {
-		log.SetLevel(log.TraceLevel)
-	} else if cfg.logDebug {
-		log.SetLevel(log.DebugLevel)
-	} else {
-		log.SetLevel(log.InfoLevel)
-	}
-
-	version.Log()
-
-	cfg.basePath = path.Dir(cfg.hierarchyFile)
-
-	log.WithFields(log.Fields{
-		"hierarchyFile":     cfg.hierarchyFile,
-		"basePath":          cfg.basePath,
-		"outputFile":        cfg.outputFile,
-		"outputPermissions": cfg.outputFile,
-		"filterExtension":   cfg.filterExtension,
-		"failMissing":       cfg.failMissing,
-	}).Debug("Configuration settings")
-
-	// Make sure we remove the output file if it already exists
-	// Just in case the program ends for any reason other than success
-	// We don't want to give the impression that we completed the merging
-	if _, err := os.Stat(cfg.outputFile); err == nil {
-		log.WithFields(log.Fields{
-			"path": cfg.outputFile,
-		}).Info("Removing existing output file")
-		err := os.Remove(cfg.outputFile)
-		checkForError(err)
-	}
-
-	// Process the hierarchy and get the list of files to be included
-	hierarchy := processHierarchy(cfg)
-
-	// Proceed with merging YAML files
-	mergeYamls(hierarchy, cfg.filterExtension, cfg.outputFile)
-}
-
 // processHierarchy loads the hierarchy file and generates a file paths list
 // of folders to be processed
 func processHierarchy(cfg config) []string {
@@ -157,7 +113,7 @@ func processHierarchy(cfg config) []string {
 		// Trim spaces and comments
 		includePath := strings.Split(line, "#")[0]
 		includePath = strings.TrimSpace(includePath)
-		includePath = ReplaceEnvironmentVariables(includePath)
+		includePath = replaceEnvironmentVariables(includePath)
 		// Process path
 		if len(includePath) > 0 {
 			includePath = path.Join(cfg.basePath, includePath)
@@ -294,4 +250,48 @@ func replaceEnvironmentVariables(str string) string {
 		str = strings.ReplaceAll(str, varName, envVar)
 	}
 	return str
+}
+
+func main() {
+	cfg := parseFlags()
+
+	// Configure different logging levels
+	log.SetOutput(os.Stdout)
+	if cfg.logTrace {
+		log.SetLevel(log.TraceLevel)
+	} else if cfg.logDebug {
+		log.SetLevel(log.DebugLevel)
+	} else {
+		log.SetLevel(log.InfoLevel)
+	}
+
+	version.Log()
+
+	cfg.basePath = path.Dir(cfg.hierarchyFile)
+
+	log.WithFields(log.Fields{
+		"hierarchyFile":     cfg.hierarchyFile,
+		"basePath":          cfg.basePath,
+		"outputFile":        cfg.outputFile,
+		"outputPermissions": cfg.outputFile,
+		"filterExtension":   cfg.filterExtension,
+		"failMissing":       cfg.failMissing,
+	}).Debug("Configuration settings")
+
+	// Make sure we remove the output file if it already exists
+	// Just in case the program ends for any reason other than success
+	// We don't want to give the impression that we completed the merging
+	if _, err := os.Stat(cfg.outputFile); err == nil {
+		log.WithFields(log.Fields{
+			"path": cfg.outputFile,
+		}).Info("Removing existing output file")
+		err := os.Remove(cfg.outputFile)
+		checkForError(err)
+	}
+
+	// Process the hierarchy and get the list of files to be included
+	hierarchy := processHierarchy(cfg)
+
+	// Proceed with merging YAML files
+	mergeYamls(hierarchy, cfg.filterExtension, cfg.outputFile)
 }
