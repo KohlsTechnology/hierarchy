@@ -1,6 +1,6 @@
 # Hierarchy
 
-[![Build Status](https://travis-ci.com/KohlsTechnology/prometheus_bigquery_remote_storage_adapter.svg?branch=master)](https://travis-ci.com/KohlsTechnology/hierarcbhy)
+[![Build Status](https://travis-ci.com/KohlsTechnology/prometheus_bigquery_remote_storage_adapter.svg?branch=master)](https://travis-ci.com/KohlsTechnology/hierarchy)
 [![Go Report Card](https://goreportcard.com/badge/github.com/KohlsTechnology/prometheus_bigquery_remote_storage_adapter)](https://goreportcard.com/report/github.com/KohlsTechnology/hierarcbhy)
 
 Hierarchy is a simple utility to merge a set of yaml or json files, based on a defined hierarchy. It is inspired by Hiera from Puppet.
@@ -11,25 +11,25 @@ You can either download a binary file from GitHub releases or [compile from sour
 
 ## Documentation
 
-The main goal of `hierarchy` is to prevent the configuration data duplication and allow for a fine-grained control over the GitOps process. The output YAML can be used to generate a `values.yml` file for GitOps tools, like [Eunomia](https://github.com/KohlsTechnology/eunomia), [Helm](https://helm.sh), and others.
+The main goal of `Hierarchy` is to prevent the duplication of configuration data and allow for fine-grained control over the GitOps process. The output YAML can be used to generate a `values.yml` file for GitOps tools, like [Eunomia](https://github.com/KohlsTechnology/eunomia), [Helm](https://helm.sh), and others.
 
 ### Usage
 
-You can control the behavior of Hierarchy either through command line options or environment variables. The later is especially helpful if you're running it inside a container.
+You can control the behavior of Hierarchy either through command line options or environment variables. The latter is especially helpful if you are running it inside a container.
 
 | Command Line Flag | Environment Variable | Default | Description |
 | --- | --- | --- | --- | --- |
 | `-f, --file` | `HIERARCHY_FILE` | `./hierarchy.lst` | Path and name of the hierarchy file. |
 | `-o, --output` | `HIERARCHY_OUTPUT` | `./output.yaml` | Path and name of the output file. |
-| `-i, --filter` | `HIERARCHY_FILTER` | `(.yaml|.yml|.json)$` | Regex for file extension of files being merged |
-| `-m, --failmissing` | `HIERARCHY_FAILMISSING` | `false` | Fail if a directory in the hierarchy is missing |
-| `-d, --debug` | `HIERARCHY_DEBUG` | `false` | Print debug output |
-| `--trace` | `HIERARCHY_TRACE` | `false` | Prints a diff after processing each file. This generates A LOT of output |
-| `-V, --version` | | | Print version and build information, then exit |
+| `-i, --filter` | `HIERARCHY_FILTER` | `(.yaml|.yml|.json)$` | Regex for allowed file extension(s) of files being merged. |
+| `-m, --failmissing` | `HIERARCHY_FAILMISSING` | `false` | Fail if a directory in the hierarchy is missing. |
+| `-d, --debug` | `HIERARCHY_DEBUG` | `false` | Print debug output. |
+| `--trace` | `HIERARCHY_TRACE` | `false` | Prints a diff after processing each file. This generates A LOT of output. |
+| `-V, --version` | | | Print version and build information, then exit. |
 
 ### Merging
 
-The `hierarchy` utility processes the YAML structure as a deep merge, with the exception of lists. Lists are completely overwritten, and therefore, it is important to keep that in mind when using them.
+The `Hierarchy` utility processes the YAML structure as a deep merge, with the exception of lists. Lists are completely overwritten; therefore, it is important to keep that in mind when using them.
 
 ### Hierarchy
 
@@ -46,16 +46,16 @@ In this case, it will load all yaml files from `../defaults`, then merge it with
 
 #### Example
 
-Let's assume you have multiple applications that get deployed over different cloud providers. This application also has development, QA, and production environments. You can decide in whichever priority (order) the configuration files are merged.
+Let's assume you have multiple applications that get deployed to different cloud providers. This application also has development, QA, and production environments. You can specify the exact priority (order) the configuration files are merged.
 
 ```
 defaults             # all applications will have this
-└── cloud            # settings specific to a cloud
+└── cloud            # settings specific to a cloud provider
   └── environment    # settings specific to the environment level (e.g. development or production)
     └── application  # settings specific to an application
 ```
 
-In order to generate the final configuration for an application running in the development environment on cloud A, the `hierarchy.lst` could look like the below example.
+In order to generate the final configuration for an application running in the development environment on "cloud A", the `hierarchy.lst` could look like the below example.
 
 ```
 # Hierarchy file for application "demo" running in "cloud A".
@@ -68,7 +68,7 @@ In order to generate the final configuration for an application running in the d
 
 ### Environment variables in the hierarchy
 
-Hierarchy allows the use of operating system environment variables to make it even more flexible. The variables must be in the format `${NAME}`, only consist of letters, numbers, and underscores, and must start with a letter. The environment variable names will be converted to upper case to avoid ambiguity. If an environment variable is not found, the program will error out to avoid generating the wrong data.
+Hierarchy allows the use of environment variables to make it even more flexible. The variables must: be in the format `${NAME}`, only consist of letters, numbers, and underscores, and start with a letter. The environment variable names will be converted to upper case to avoid ambiguity. If an environment variable is not found, the program will error out to avoid generating the wrong data.
 
 #### Example
 ```

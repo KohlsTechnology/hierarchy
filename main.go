@@ -276,7 +276,7 @@ func getFiles(includePath string, fileFilter string) []string {
 
 // ReplaceEnvironmentVariables replaces all variable names in a string with the content defined on the OS
 // If a variable is not defined, it will fail to avoid any unintended results
-func ReplaceEnvironmentVariables(str string) string {
+func replaceEnvironmentVariables(str string) string {
 	// variables must be in the format ${NAME}
 	// Letters, numbers, and underscores are allowed
 	// Variable name must start with a letter
