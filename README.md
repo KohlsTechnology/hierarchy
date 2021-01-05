@@ -7,11 +7,11 @@ Hierarchy is a simple utility to merge a set of yaml or json files, based on a d
 
 ## Installation
 
-You can either download the binary file from the GitHub releases or [compile from source](#compiling-from-source).
+You can either download a binary file from GitHub releases or [compile from source](#compiling-from-source).
 
 ## Documentation
 
-The main goal of `hierarchy` is to allow the deduplication of configuration data and allow for a fine grained control over your GitOps process. GitOps tools, like [Eunomia](https://github.com/KohlsTechnology/eunomia), can use it to generate a `values.yml` file that is then being used by [Helm](https://helm.sh) or similar tools.
+The main goal of `hierarchy` is to prevent the configuration data duplication and allow for a fine-grained control over the GitOps process. The output YAML can be used to generate a `values.yml` file for GitOps tools, like [Eunomia](https://github.com/KohlsTechnology/eunomia), [Helm](https://helm.sh), and others.
 
 ### Usage
 
@@ -36,20 +36,20 @@ Flags:
 
 ### Merging
 
-Hierarchy does a deep merge on the yaml structure, with the exception of lists. Lists will be completely overwritten, so choose wisely where to use them.
+The `hierarchy` utility processes the YAML structure as a deep merge, with the exception of lists. Lists are completely overwritten, and therefore, it is important to keep that in mind when using them.
 
 ### Hierarchy
 
-The hierarchy is defined in the file `hierarchy.lst`. This is a simple text file that lists one include folder per line and supports comments prefixed with `#`. The directories listed can be relative or absolute (try to avoid) paths. You can have directories included that are higher or lower in the structure. You have complete control. You can look at examples [here](https://github.com/KohlsTechnology/hierarchy/blob/master/testdata/).
+The hierarchy is defined in the file `hierarchy.lst`. This is a simple text file that lists one include folder per line and supports comments prefixed with `#`. The directories listed can be relative or absolute (try to avoid) paths. You can have directories included that are higher or lower in the structure to control their precedence. You can look at examples [here](https://github.com/KohlsTechnology/hierarchy/blob/master/testdata/).
 
 #### Example content
 ```
-../defaults    #this is first ... lowest priority
-../marketing   #this is second
-../development #this is third ... highest priority
+../defaults    #this is the first ... lowest priority
+../marketing   #this is the second
+../development #this is the third ... highest priority
 ```
 
-In this case it will load all yaml files from ../defaults, then merge it with everything in ../marketing, and lastly merges it with everything in ../development. You can also use the relative path ./, which means it'll also load the variables defined in contextDir directly (same folder that as hierarchy.lst). You can insert ./ in whatever order you want in the hierarchy.lst - it will determine its priority.
+In this case, it will load all yaml files from `../defaults`, then merge it with everything in `../marketing`, and lastly merge it with everything in `../development`. You can also use the relative path `./`, which means that it will also load variables defined in contextDir directly (same folder level as `hierarchy.lst`). You can insert `./` in any desired order in the `hierarchy.lst`, thus determining its priority.
 
 #### Example
 
@@ -115,4 +115,3 @@ See [LICENSE](LICENSE) for details.
 
 See [CODE_OF_CONDUCT.md](.github/CODE_OF_CONDUCT.md)
 for details.
-
