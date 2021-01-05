@@ -28,12 +28,12 @@ import (
 // example call: go test -v -args -googleAPIjsonkeypath=../../project-credential.json -googleAPIdatasetID=prometheus_test -googleAPItableID=test_stream ./...
 
 func TestGetFiles(t *testing.T) {
-	expected := []string{"testdata/unit1/default/defaults.json", "testdata/unit1/default/defaults.yml"}
-	result := getFiles("testdata/unit1/default", defaultFileFilter)
+	expected := []string{"testdata/default/defaults.json", "testdata/default/defaults.yml"}
+	result := getFiles("testdata/default", defaultFileFilter)
 	assert.Equal(t, expected, result)
 
-	expected = []string{"testdata/unit1/yaml/one.yaml", "testdata/unit1/yaml/two.yml"}
-	result = getFiles("testdata/unit1/yaml", defaultFileFilter)
+	expected = []string{"testdata/yaml/one.yaml", "testdata/yaml/two.yml"}
+	result = getFiles("testdata/yaml", defaultFileFilter)
 	assert.Equal(t, expected, result)
 
 	// assert.Nil(t, err, "failed to process query")
@@ -47,15 +47,15 @@ func TestGetFiles(t *testing.T) {
 func TestProcessHierarchy(t *testing.T) {
 	var cfg config
 
-	cfg.hierarchyFile = "testdata/unit1/hierarchy.lst"
-	cfg.basePath = "testdata/unit1"
+	cfg.hierarchyFile = "testdata/test1/hierarchy.lst"
+	cfg.basePath = "testdata/test1"
 	cfg.outputFile = "output.yaml"
 	cfg.filterExtension = defaultFileFilter
 	cfg.logDebug = false
 	cfg.logTrace = false
 	cfg.failMissing = false
 
-	expected := []string{"testdata/unit1/default", "testdata/unit1/yaml", "testdata/unit1/json", "testdata/unit1/empty", "testdata/unit1"}
+	expected := []string{"testdata/default", "testdata/yaml", "testdata/json", "testdata/empty", "testdata/test1"}
 	result := processHierarchy(cfg)
 	assert.Equal(t, expected, result)
 }
@@ -63,8 +63,8 @@ func TestProcessHierarchy(t *testing.T) {
 func TestFailEmpty(t *testing.T) {
 	if os.Getenv("TEST_FAIL_EMPTY") == "1" {
 		var cfg config
-		cfg.hierarchyFile = "testdata/unit1/hierarchy.lst"
-		cfg.basePath = "testdata/unit1"
+		cfg.hierarchyFile = "testdata/test1/hierarchy.lst"
+		cfg.basePath = "testdata/test1"
 		cfg.outputFile = "output.yaml"
 		cfg.filterExtension = defaultFileFilter
 		cfg.logDebug = false
@@ -89,8 +89,8 @@ func TestFailEmpty(t *testing.T) {
 func TestEnd2End(t *testing.T) {
 	var cfg config
 
-	cfg.hierarchyFile = "testdata/unit1/hierarchy.lst"
-	cfg.basePath = "testdata/unit1"
+	cfg.hierarchyFile = "testdata/test1/hierarchy.lst"
+	cfg.basePath = "testdata/test1"
 	cfg.outputFile = "output.yaml"
 	cfg.filterExtension = defaultFileFilter
 	cfg.logDebug = false
@@ -103,7 +103,64 @@ func TestEnd2End(t *testing.T) {
 	// Lets do the deed
 	mergeYamls(hierarchy, cfg.filterExtension, cfg.outputFile)
 
-	expected, err := ioutil.ReadFile("testdata/unit1/result/expected.yaml")
+	expected, err := ioutil.ReadFile("testdata/test1/result/expected.yaml")
+	if err != nil {
+		t.Fatalf("Error reading file with expected test results: %v", err)
+	}
+	result, err := ioutil.ReadFile(cfg.outputFile)
+	if err != nil {
+		t.Fatalf("Error reading output file: %v", err)
+	}
+	assert.Equal(t, string(expected), string(result))
+}
+
+func TestFailMissingEnvironmentVariable(t *testing.T) {
+	if os.Getenv("TEST_FAIL_EMPTY") == "1" {
+		var cfg config
+		cfg.hierarchyFile = "testdata/test2-with-env-fail/hierarchy.lst"
+		cfg.basePath = "testdata/test2-with-env-fail"
+		cfg.outputFile = "output.yaml"
+		cfg.filterExtension = defaultFileFilter
+		cfg.logDebug = false
+		cfg.logTrace = false
+		cfg.failMissing = false
+
+		processHierarchy(cfg)
+
+		return
+	}
+
+	cmd := exec.Command(os.Args[0], "-test.run=TestFailMissingEnvironmentVariable")
+	cmd.Env = append(os.Environ(), "TEST_FAIL_EMPTY=1")
+	err := cmd.Run()
+	if e, ok := err.(*exec.ExitError); ok && !e.Success() {
+		fmt.Printf("Process correctly failed with %v\n", e)
+		return
+	}
+	t.Fatalf("process ran with err %v, want exit status 1", err)
+}
+
+func TestEnd2EndEnvironmentVariables(t *testing.T) {
+	var cfg config
+
+	cfg.hierarchyFile = "testdata/test2-with-env/hierarchy.lst"
+	cfg.basePath = "testdata/test2-with-env"
+	cfg.outputFile = "output.yaml"
+	cfg.filterExtension = defaultFileFilter
+	cfg.logDebug = false
+	cfg.logTrace = false
+	cfg.failMissing = false
+
+	// set the test environment variable
+	os.Setenv("JSON", "json")
+
+	// process the hierarchy and get the list of include files
+	hierarchy := processHierarchy(cfg)
+
+	// Lets do the deed
+	mergeYamls(hierarchy, cfg.filterExtension, cfg.outputFile)
+
+	expected, err := ioutil.ReadFile("testdata/test2-with-env/result/expected.yaml")
 	if err != nil {
 		t.Fatalf("Error reading file with expected test results: %v", err)
 	}

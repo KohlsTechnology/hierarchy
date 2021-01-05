@@ -63,9 +63,9 @@ func parseFlags() config {
 	application.Flag("filter", "Regex for file extension of files being merged").Short('i').
 		Envar("HIERARCHY_FILTER").Default(defaultFileFilter).StringVar(&cfg.filterExtension)
 	application.Flag("trace", "Prints a diff after processing each file. This generates A LOT of output").
-		Default("false").BoolVar(&cfg.logTrace)
+		Envar("HIERARCHY_TRACE").Default("false").BoolVar(&cfg.logTrace)
 	application.Flag("failmissing", "Fail if a directory in the hierarchy is missing").Short('m').
-		Default("false").BoolVar(&cfg.failMissing)
+		Envar("HIERARCHY_FAILMISSING").Default("false").BoolVar(&cfg.failMissing)
 	application.Flag("version", "Print version and build information, then exit").Short('V').
 		Default("false").BoolVar(&cfg.printVersion)
 	application.Flag("debug", "Print debug output").Short('d').
@@ -157,10 +157,7 @@ func processHierarchy(cfg config) []string {
 		// Trim spaces and comments
 		includePath := strings.Split(line, "#")[0]
 		includePath = strings.TrimSpace(includePath)
-		// TODO write own ExpandEnv that fails if variable is not defined
-		// TODO replace environment variables expansion with go template
-		// Example: https://gist.github.com/raphink/e1afb23300a7e53a0949
-		includePath = os.ExpandEnv(includePath)
+		includePath = ReplaceEnvironmentVariables(includePath)
 		// Process path
 		if len(includePath) > 0 {
 			includePath = path.Join(cfg.basePath, includePath)
@@ -275,4 +272,26 @@ func getFiles(includePath string, fileFilter string) []string {
 	}
 
 	return includeFiles
+}
+
+// ReplaceEnvironmentVariables replaces all variable names in a string with the content defined on the OS
+// If a variable is not defined, it will fail to avoid any unintended results
+func ReplaceEnvironmentVariables(str string) string {
+	// variables must be in the format ${NAME}
+	// Letters, numbers, and underscores are allowed
+	// Variable name must start with a letter
+	// Environment variable names will be converted to upper case to avoid ambiguity
+	re := regexp.MustCompile(`\$\{[A-Za-z][][A-Za-z_0-9.]*\}`)
+	for _, varName := range re.FindAllString(str, -1) {
+		envVarName := strings.TrimPrefix(varName, "${")
+		envVarName = strings.TrimSuffix(envVarName, "}")
+		envVar := os.Getenv(strings.ToUpper(envVarName))
+		if len(envVar) == 0 {
+			log.WithFields(log.Fields{
+				"name": envVarName,
+			}).Fatal("Environment variable not defined")
+		}
+		str = strings.ReplaceAll(str, varName, envVar)
+	}
+	return str
 }

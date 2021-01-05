@@ -15,24 +15,17 @@ The main goal of `hierarchy` is to prevent the configuration data duplication an
 
 ### Usage
 
-```
-./hierarchy -h
-usage: hierarchy [<flags>]
+You can control the behavior of Hierarchy either through command line options or environment variables. The later is especially helpful if you're running it inside a container.
 
-Hierarchy
-
-Flags:
-  -h, --help                    Show context-sensitive help (also try --help-long and --help-man).
-  -f, --file="./hierarchy.lst"  Path and name of the hierarchy file.
-  -o, --output="./output.yaml"  Path and name of the output file.
-  -i, --filter="(.yaml|.yml|.json)$"
-                                Regex for file extension of files being merged
-      --trace                   Prints a diff after processing each file. This generates A LOT of output
-  -m, --failmissing             Fail if a directory in the hierarchy is missing
-  -V, --version                 Print version and build information, then exit
-  -d, --debug                   Print debug output
-
-```
+| Command Line Flag | Environment Variable | Default | Description |
+| --- | --- | --- | --- | --- |
+| `-f, --file` | `HIERARCHY_FILE` | `./hierarchy.lst` | Path and name of the hierarchy file. |
+| `-o, --output` | `HIERARCHY_OUTPUT` | `./output.yaml` | Path and name of the output file. |
+| `-i, --filter` | `HIERARCHY_FILTER` | `(.yaml|.yml|.json)$` | Regex for file extension of files being merged |
+| `-m, --failmissing` | `HIERARCHY_FAILMISSING` | `false` | Fail if a directory in the hierarchy is missing |
+| `-d, --debug` | `HIERARCHY_DEBUG` | `false` | Print debug output |
+| `--trace` | `HIERARCHY_TRACE` | `false` | Prints a diff after processing each file. This generates A LOT of output |
+| `-V, --version` | | | Print version and build information, then exit |
 
 ### Merging
 
@@ -70,6 +63,20 @@ In order to generate the final configuration for an application running in the d
 ../../defaults
 ../clouds/A
 ./environments/dev
+./
+```
+
+### Environment variables in the hierarchy
+
+Hierarchy allows the use of operating system environment variables to make it even more flexible. The variables must be in the format `${NAME}`, only consist of letters, numbers, and underscores, and must start with a letter. The environment variable names will be converted to upper case to avoid ambiguity. If an environment variable is not found, the program will error out to avoid generating the wrong data.
+
+#### Example
+```
+# Hierarchy file for application "demo" running in "cloud A".
+# location `..../applications/demo/clouda1.hierarchy.lst
+../../defaults
+../clouds/A
+./environments/${ENVIRONMENT}
 ./
 ```
 
