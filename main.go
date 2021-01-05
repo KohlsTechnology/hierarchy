@@ -60,16 +60,16 @@ func parseFlags() config {
 		Envar("HIERARCHY_FILE").Default("./hierarchy.lst").StringVar(&cfg.hierarchyFile)
 	application.Flag("output", "Path and name of the output file.").Short('o').
 		Envar("HIERARCHY_OUTPUT").Default("./output.yaml").StringVar(&cfg.outputFile)
-	application.Flag("filter", "Regex for file extension of files being merged").Short('i').
+	application.Flag("filter", "Regex for allowed file extension(s) of files being merged.").Short('i').
 		Envar("HIERARCHY_FILTER").Default(defaultFileFilter).StringVar(&cfg.filterExtension)
-	application.Flag("trace", "Prints a diff after processing each file. This generates A LOT of output").
-		Envar("HIERARCHY_TRACE").Default("false").BoolVar(&cfg.logTrace)
-	application.Flag("failmissing", "Fail if a directory in the hierarchy is missing").Short('m').
+	application.Flag("failmissing", "Fail if a directory in the hierarchy is missing.").Short('m').
 		Envar("HIERARCHY_FAILMISSING").Default("false").BoolVar(&cfg.failMissing)
-	application.Flag("version", "Print version and build information, then exit").Short('V').
-		Default("false").BoolVar(&cfg.printVersion)
-	application.Flag("debug", "Print debug output").Short('d').
+	application.Flag("debug", "Print debug output.").Short('d').
 		Envar("HIERARCHY_DEBUG").Default("false").BoolVar(&cfg.logDebug)
+	application.Flag("trace", "Prints a diff after processing each file. This generates A LOT of output.").
+		Envar("HIERARCHY_TRACE").Default("false").BoolVar(&cfg.logTrace)
+	application.Flag("version", "Print version and build information, then exit.").Short('V').
+		Default("false").BoolVar(&cfg.printVersion)
 
 	_, err := application.Parse(os.Args[1:])
 
