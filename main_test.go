@@ -37,7 +37,7 @@ func TestGetFilesSuccess(t *testing.T) {
 	assert.Equal(t, expected, result)
 }
 
-func TestProcessHierarchy(t *testing.T) {
+func TestProcessHierarchySuccess(t *testing.T) {
 	var cfg config
 
 	cfg.hierarchyFile = "testdata/test1/hierarchy.lst"
