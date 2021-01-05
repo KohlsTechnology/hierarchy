@@ -79,7 +79,7 @@ func parseFlags() config {
 	}
 
 	if err != nil {
-		fmt.Fprintln(os.Stderr, errors.Wrapf(err, "Error parsing commandline arguments"))
+		fmt.Fprintln(os.Stderr, errors.Wrapf(err, "Error parsing command-line arguments"))
 		application.Usage(os.Args[1:])
 		os.Exit(2)
 	}
@@ -93,7 +93,7 @@ func checkForError(e error) {
 	}
 }
 
-// processHierarchy loads the hierarchy file and generates a file paths list
+// processHierarchy loads the hierarchy file and generates a list of file paths
 // of folders to be processed
 func processHierarchy(cfg config) []string {
 	hierarchy := []string{}
@@ -101,7 +101,7 @@ func processHierarchy(cfg config) []string {
 	checkForError(err)
 	defer hierarchyFile.Close()
 
-	// Start reading from the file with a reader.
+	// Start reading from the file with a reader
 	reader := bufio.NewReader(hierarchyFile)
 	var line string
 	for {
@@ -133,7 +133,7 @@ func processHierarchy(cfg config) []string {
 				} else {
 					log.WithFields(log.Fields{
 						"path": includePath,
-					}).Info("Ignoring missing hierarchy directory")
+					}).Warning("Ignoring missing hierarchy directory")
 				}
 			}
 		}
@@ -150,9 +150,9 @@ func processHierarchy(cfg config) []string {
 }
 
 // mergeYamls walks through all the folders in the hierarchy
-// and merges all files matching the pattern into the structure
+// and merges all files matching the pattern into the structure,
 // overwriting any existing values
-// and finally exports it as a new YAML file
+// and exports the merged content to a new YAML file
 func mergeYamls(hierarchy []string, fileFilter string, outputFile string) {
 	// Initialize variables
 	var data map[string]interface{}
@@ -195,7 +195,7 @@ func mergeYamls(hierarchy []string, fileFilter string, outputFile string) {
 		"count": counter,
 	}).Info("Completed merging all files")
 
-	// Writing the output file
+	// Write to output file
 	log.WithFields(log.Fields{
 		"path": outputFile,
 	}).Info("Writing output file")
@@ -205,7 +205,7 @@ func mergeYamls(hierarchy []string, fileFilter string, outputFile string) {
 	checkForError(err)
 }
 
-// getFiles lists all files in a given path and returns a list of matching the fileFilter
+// getFiles gets all files in a given path and returns a list of files with extensions matching the fileFilter
 func getFiles(includePath string, fileFilter string) []string {
 	var includeFiles []string
 	files, err := ioutil.ReadDir(includePath)
@@ -226,14 +226,13 @@ func getFiles(includePath string, fileFilter string) []string {
 			}
 		}
 	}
-
 	return includeFiles
 }
 
 // ReplaceEnvironmentVariables replaces all variable names in a string with the content defined on the OS
 // If a variable is not defined, it will fail to avoid any unintended results
 func replaceEnvironmentVariables(str string) string {
-	// variables must be in the format ${NAME}
+	// Variables must be in the format ${NAME}
 	// Letters, numbers, and underscores are allowed
 	// Variable name must start with a letter
 	// Environment variable names will be converted to upper case to avoid ambiguity
@@ -255,7 +254,7 @@ func replaceEnvironmentVariables(str string) string {
 func main() {
 	cfg := parseFlags()
 
-	// Configure different logging levels
+	// Configure logging level
 	log.SetOutput(os.Stdout)
 	if cfg.logTrace {
 		log.SetLevel(log.TraceLevel)
