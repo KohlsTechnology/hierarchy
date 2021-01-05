@@ -27,7 +27,7 @@ import (
 
 // example call: go test -v -args -googleAPIjsonkeypath=../../project-credential.json -googleAPIdatasetID=prometheus_test -googleAPItableID=test_stream ./...
 
-func TestGetFiles(t *testing.T) {
+func TestGetFilesSuccess(t *testing.T) {
 	expected := []string{"testdata/default/defaults.json", "testdata/default/defaults.yml"}
 	result := getFiles("testdata/default", defaultFileFilter)
 	assert.Equal(t, expected, result)
