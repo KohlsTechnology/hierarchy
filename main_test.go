@@ -103,7 +103,7 @@ func TestEnd2EndSuccess(t *testing.T) {
 	hierarchy := processHierarchy(cfg)
 
 	// Lets do the deed
-	mergeYamls(hierarchy, cfg.filterExtension, cfg.outputFile)
+	mergeFilesInHierarchy(hierarchy, cfg.filterExtension, cfg.outputFile)
 
 	expected, err := ioutil.ReadFile("testdata/test1/result/expected.yaml")
 	if err != nil {
@@ -168,7 +168,7 @@ func TestEnd2EndEnvironmentVariablesSuccess(t *testing.T) {
 	hierarchy := processHierarchy(cfg)
 
 	// Merge files
-	mergeYamls(hierarchy, cfg.filterExtension, cfg.outputFile)
+	mergeFilesInHierarchy(hierarchy, cfg.filterExtension, cfg.outputFile)
 
 	expected, err := ioutil.ReadFile("testdata/test2-with-env/result/expected.yaml")
 	if err != nil {
