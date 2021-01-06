@@ -8,6 +8,7 @@ Hierarchy is a simple utility to merge a set of yaml or json files, based on a d
 ## Installation
 
 You can either download a binary file from GitHub releases or [compile from source](#compiling-from-source).
+Note: `vendor/` files are intentionally included in GitHub repo to ensure deprecation of dependent packages do not cause service to break.
 
 ## Documentation
 

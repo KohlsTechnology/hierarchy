@@ -153,7 +153,7 @@ func processHierarchy(cfg config) []string {
 // and merges all files matching the pattern into the structure,
 // overwriting any existing values
 // and exports the merged content to a new YAML file
-func mergeYamls(hierarchy []string, fileFilter string, outputFile string) {
+func mergeFilesInHierarchy(hierarchy []string, fileFilter string, outputFile string) {
 	// Initialize variables
 	var data map[string]interface{}
 	counter := 0
@@ -291,6 +291,6 @@ func main() {
 	// Process the hierarchy and get the list of files to be included
 	hierarchy := processHierarchy(cfg)
 
-	// Proceed with merging YAML files
-	mergeYamls(hierarchy, cfg.filterExtension, cfg.outputFile)
+	// Proceed with merging configuration files
+	mergeFilesInHierarchy(hierarchy, cfg.filterExtension, cfg.outputFile)
 }

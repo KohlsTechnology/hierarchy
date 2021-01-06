@@ -86,9 +86,9 @@ func TestFailMissing(t *testing.T) {
 	t.Fatalf("process ran with err %v, want exit status 1", err)
 }
 
-// TestEnd2End runs through the full functionality end-to-end
+// TestEnd2EndSuccess runs through the full functionality end-to-end
 // It compares the generated final file with one stored in git
-func TestEnd2End(t *testing.T) {
+func TestEnd2EndSuccess(t *testing.T) {
 	var cfg config
 
 	cfg.hierarchyFile = "testdata/test1/hierarchy.lst"
@@ -147,10 +147,10 @@ func TestFailMissingEnvironmentVariable(t *testing.T) {
 	t.Fatalf("process ran with err %v, want exit status 1", err)
 }
 
-// TestEnd2EndEnvironmentVariables runs through the full functionality end-to-end,
+// TestEnd2EndEnvironmentVariablesSuccess runs through the full functionality end-to-end,
 // specifically testing the correct resolution of environment variables specified in `hierarchy.lst`
 // It compares the generated final file with one stored in git
-func TestEnd2EndEnvironmentVariables(t *testing.T) {
+func TestEnd2EndEnvironmentVariablesSuccess(t *testing.T) {
 	var cfg config
 
 	cfg.hierarchyFile = "testdata/test2-with-env/hierarchy.lst"
@@ -167,7 +167,7 @@ func TestEnd2EndEnvironmentVariables(t *testing.T) {
 	// process the hierarchy and get the list of include files
 	hierarchy := processHierarchy(cfg)
 
-	// Lets do the deed
+	// Merge files
 	mergeYamls(hierarchy, cfg.filterExtension, cfg.outputFile)
 
 	expected, err := ioutil.ReadFile("testdata/test2-with-env/result/expected.yaml")
