@@ -149,7 +149,7 @@ func processHierarchy(cfg config) []string {
 	return hierarchy
 }
 
-// mergeYamls walks through all the folders in the hierarchy
+// mergeFilesInHierarchy walks through all the folders in the hierarchy
 // and merges all files matching the pattern into the structure,
 // overwriting any existing values
 // and exports the merged content to a new YAML file
