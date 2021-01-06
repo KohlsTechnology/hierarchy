@@ -1,0 +1,16 @@
+test1:
+    json: it worked!!!
+    jsondefault: it worked!!!
+    test1A:
+        one: 1
+        three: 3
+        two: 2
+    test1B: one bee
+    test1C: 4
+test2:
+    list2A:
+        - eins
+        - zwei
+        - drei
+    test2A: two A
+test3: this better be there!

@@ -1,0 +1,8 @@
+# This file has various combinations of comments and ways of specifying the path
+# Next line are the initial values
+../default
+../yaml # different yaml files
+../${JSON}/
+../empty
+missing/
+./

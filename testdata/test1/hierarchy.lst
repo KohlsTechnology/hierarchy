@@ -1,0 +1,10 @@
+# This file has various combinations of comments and ways of specifying the path
+# Next line are the initial values
+../default
+../yaml # different yaml files
+# The next line has a slash at the end on purpose to test different path variations
+../json/
+../empty
+# The next line should throw a warning, except for the TestFailMissing test case
+missing/
+./

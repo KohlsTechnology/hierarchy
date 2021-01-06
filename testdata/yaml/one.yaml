@@ -1,0 +1,12 @@
+test1:
+  # just a bunch of key value pairs
+  test1A:
+    three: 3
+  test1C: 4
+
+test2:
+  # overwriting the list
+  list2A:
+    - eins
+    - zwei
+    - drei
