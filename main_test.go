@@ -25,8 +25,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// example call: go test -v -args -googleAPIjsonkeypath=../../project-credential.json -googleAPIdatasetID=prometheus_test -googleAPItableID=test_stream ./...
-
+// TestGetFilesSuccess verifies that we receive the correct list of files to be merged
+// As part of this test, it will also check the proper functioning of the regex for the file filter
+// fail.txt and fail.yaml.disabled should never be returned
 func TestGetFilesSuccess(t *testing.T) {
 	expected := []string{"testdata/default/defaults.json", "testdata/default/defaults.yml"}
 	result := getFiles("testdata/default", defaultFileFilter)
@@ -37,6 +38,8 @@ func TestGetFilesSuccess(t *testing.T) {
 	assert.Equal(t, expected, result)
 }
 
+// TestProcessHierarchySuccess verifies that all directories are correctly added to the list to be processed
+// It will also test the correct handling of comments and different ways of specifying a relative path
 func TestProcessHierarchySuccess(t *testing.T) {
 	var cfg config
 
@@ -53,6 +56,10 @@ func TestProcessHierarchySuccess(t *testing.T) {
 	assert.Equal(t, expected, result)
 }
 
+// TestFailMissing tests the correct behavior of the `--failmissing` command line option
+// It spawns a new process to determine the exit code of the application.
+// Anything other than a 1 is a problem
+// It uses the environment variable TEST_FAIL_EMPTY to signal the actual execution of the functionality
 func TestFailMissing(t *testing.T) {
 	if os.Getenv("TEST_FAIL_EMPTY") == "1" {
 		var cfg config
@@ -79,6 +86,8 @@ func TestFailMissing(t *testing.T) {
 	t.Fatalf("process ran with err %v, want exit status 1", err)
 }
 
+// TestEnd2End runs through the full functionality end-to-end
+// It compares the generated final file with one stored in git
 func TestEnd2End(t *testing.T) {
 	var cfg config
 
@@ -107,6 +116,11 @@ func TestEnd2End(t *testing.T) {
 	assert.Equal(t, string(expected), string(result))
 }
 
+// TestFailMissingEnvironmentVariable ensures that the application is correctly failing
+// If an environment variable specified in `hierarchy.lst` is not found.
+// It spawns a new process to determine the exit code of the application.
+// Anything other than a 1 is a problem
+// It uses the environment variable TEST_FAIL_EMPTY to signal the actual execution of the functionality
 func TestFailMissingEnvironmentVariable(t *testing.T) {
 	if os.Getenv("TEST_FAIL_EMPTY") == "1" {
 		var cfg config
@@ -133,6 +147,9 @@ func TestFailMissingEnvironmentVariable(t *testing.T) {
 	t.Fatalf("process ran with err %v, want exit status 1", err)
 }
 
+// TestEnd2EndEnvironmentVariables runs through the full functionality end-to-end,
+// specifically testing the correct resolution of environment variables specified in `hierarchy.lst`
+// It compares the generated final file with one stored in git
 func TestEnd2EndEnvironmentVariables(t *testing.T) {
 	var cfg config
 
