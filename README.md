@@ -20,10 +20,14 @@ You can control the behavior of Hierarchy either through command line options or
 
 | Command Line Flag | Environment Variable | Default | Description |
 | --- | --- | --- | --- | --- |
-| `-f, --file` | `HIERARCHY_FILE` | `./hierarchy.lst` | Path and name of the hierarchy file. |
+| `-f, --file` | `HIERARCHY_FILE` | `hierarchy.lst` | Name of the hierarchy file. |
+| `-b, --base` | `HIERARCHY_BASE` | `./` | Base path. |
 | `-o, --output` | `HIERARCHY_OUTPUT` | `./output.yaml` | Path and name of the output file. |
 | `-i, --filter` | `HIERARCHY_FILTER` | `(.yaml|.yml|.json)$` | Regex for allowed file extension(s) of files being merged. |
-| `-m, --failmissing` | `HIERARCHY_FAILMISSING` | `false` | Fail if a directory in the hierarchy is missing. |
+| `--output-no-variables` | `HIERARCHY_OUTPUT_NO_VARIABLES` | `false` | Do not find and replace environment variables in output file. |
+| `--fail.missinghierarchy` | `HIERARCHY_FAIL_MISSING_HIERARCHY` | `false` | Fail if a hierarchy file is not found, otherwise merge all files in base folder. |
+| `--fail.missingpath` | `HIERARCHY_FAIL_MISSING_PATH` | `false` | Fail if a directory in the hierarchy is missing. |
+| `--fail.missingvariable` | `HIERARCHY_FAIL_MISSING_VARIABLE` | `false` | Fail if an environment variable defined in the final yaml is not found. |
 | `-d, --debug` | `HIERARCHY_DEBUG` | `false` | Print debug output. |
 | `--trace` | `HIERARCHY_TRACE` | `false` | Prints a diff after processing each file. This generates A LOT of output. |
 | `-V, --version` | | | Print version and build information, then exit. |
@@ -35,6 +39,8 @@ The `Hierarchy` utility processes the YAML structure as a deep merge, with the e
 ### Hierarchy
 
 The hierarchy is defined in the file `hierarchy.lst`. This is a simple text file that lists one include folder per line and supports comments prefixed with `#`. The directories listed can be relative or absolute (try to avoid) paths. You can have directories included that are higher or lower in the structure to control their precedence. You can look at examples [here](https://github.com/KohlsTechnology/hierarchy/blob/master/testdata/).
+
+If the file `hierarchy.lst` is not found in the base path, then `Hierarchy` will merge all files found in the base directory that match the filter criteria. The execution will fail if the base path is not found.
 
 #### Example content
 ```
