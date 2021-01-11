@@ -23,7 +23,7 @@ You can control the behavior of Hierarchy either through command line options or
 | `-f, --file` | `HIERARCHY_FILE` | `hierarchy.lst` | Name of the hierarchy file. |
 | `-b, --base` | `HIERARCHY_BASE` | `./` | Base path. |
 | `-o, --output` | `HIERARCHY_OUTPUT` | `./output.yaml` | Path and name of the output file. |
-| `-i, --filter` | `HIERARCHY_FILTER` | `(.yaml|.yml|.json)$` | Regex for allowed file extension(s) of files being merged. |
+| `-i, --filter` | `HIERARCHY_FILTER` | `(.yaml\|.yml\|.json)$` | Regex for allowed file extension(s) of files being merged. |
 | `--output-no-variables` | `HIERARCHY_OUTPUT_NO_VARIABLES` | `false` | Do not find and replace environment variables in output file. |
 | `--fail.missinghierarchy` | `HIERARCHY_FAIL_MISSING_HIERARCHY` | `false` | Fail if a hierarchy file is not found, otherwise merge all files in base folder. |
 | `--fail.missingpath` | `HIERARCHY_FAIL_MISSING_PATH` | `false` | Fail if a directory in the hierarchy is missing. |
