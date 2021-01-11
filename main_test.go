@@ -64,7 +64,7 @@ func TestProcessHierarchySuccess(t *testing.T) {
 	assert.Equal(t, expected, result)
 }
 
-// TestFailMissing tests the correct behavior of the `--failmissing` command line option
+// TestFailMissingPath tests the correct behavior of the `--failmissing` command line option
 // It spawns a new process to determine the exit code of the application.
 // Anything other than a 1 is a problem
 // It uses the environment variable TEST_FAIL_EMPTY to signal the actual execution of the functionality
@@ -79,7 +79,7 @@ func TestFailMissingPath(t *testing.T) {
 		return
 	}
 
-	cmd := exec.Command(os.Args[0], "-test.run= TestFailMissingPath")
+	cmd := exec.Command(os.Args[0], "-test.run=TestFailMissingPath")
 	cmd.Env = append(os.Environ(), "TEST_FAIL_EMPTY=1")
 	output, err := cmd.CombinedOutput()
 	fmt.Printf("%s\n", output)
@@ -230,13 +230,13 @@ func TestFailContentMissingEnvironmentVariable(t *testing.T) {
 	if os.Getenv("TEST_FAIL_EMPTY") == "1" {
 		cfg := cfgDefaults
 		cfg.basePath = "testdata/content-with-env"
-		cfg.failMissingEnvVar = false
+		cfg.failMissingEnvVar = true
 
 		// process the hierarchy and get the list of include files
 		hierarchy := processHierarchy(cfg)
 
 		// Merge files in hierarchy
-		mergeFilesInHierarchy(hierarchy, cfg.filterExtension, cfg.outputFile, false, true)
+		mergeFilesInHierarchy(hierarchy, cfg.filterExtension, cfg.outputFile, cfg.skipEnvVarContent, cfg.failMissingEnvVar)
 
 		return
 	}
@@ -268,7 +268,7 @@ func TestContentMissingEnvironmentVariableSuccess(t *testing.T) {
 	os.Setenv("EXISTING_VARIABLE2", "two")
 
 	// merge files in hierarchy
-	mergeFilesInHierarchy(hierarchy, cfg.filterExtension, cfg.outputFile, false, false)
+	mergeFilesInHierarchy(hierarchy, cfg.filterExtension, cfg.outputFile, cfg.skipEnvVarContent, cfg.failMissingEnvVar)
 
 	expected, err := ioutil.ReadFile("testdata/content-with-env/result/expected.yaml")
 	if err != nil {
