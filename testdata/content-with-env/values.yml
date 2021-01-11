@@ -1,0 +1,3 @@
+existing1: ${EXISTING_VARIABLE1}
+existing2: ${EXISTING_VARIABLE2}
+missing: ${MISSING_VARIABLE}

@@ -36,15 +36,18 @@ import (
 )
 
 type config struct {
-	hierarchyFile   string
-	basePath        string
-	outputFile      string
-	filterExtension string
-	printVersion    bool
-	diffOutput      bool
-	logDebug        bool
-	logTrace        bool
-	failMissing     bool
+	hierarchyFile        string
+	basePath             string
+	outputFile           string
+	filterExtension      string
+	printVersion         bool
+	diffOutput           bool
+	logDebug             bool
+	logTrace             bool
+	failMissingHierarchy bool
+	failMissingPath      bool
+	failMissingEnvVar    bool
+	skipEnvVarContent    bool
 }
 
 // Default file filter
@@ -56,14 +59,22 @@ func parseFlags() config {
 
 	cfg := config{}
 
-	application.Flag("file", "Path and name of the hierarchy file.").Short('f').
-		Envar("HIERARCHY_FILE").Default("./hierarchy.lst").StringVar(&cfg.hierarchyFile)
+	application.Flag("file", "Name of the hierarchy file.").Short('f').
+		Envar("HIERARCHY_FILE").Default("hierarchy.lst").StringVar(&cfg.hierarchyFile)
+	application.Flag("base", "Base path.").Short('b').
+		Envar("HIERARCHY_BASE").Default("./").StringVar(&cfg.basePath)
 	application.Flag("output", "Path and name of the output file.").Short('o').
 		Envar("HIERARCHY_OUTPUT").Default("./output.yaml").StringVar(&cfg.outputFile)
+	application.Flag("output-no-variables", "Do not find and replace environment variables in output file.").
+		Envar("HIERARCHY_OUTPUT_NO_VARIABLES").Default("false").BoolVar(&cfg.skipEnvVarContent)
 	application.Flag("filter", "Regex for allowed file extension(s) of files being merged.").Short('i').
 		Envar("HIERARCHY_FILTER").Default(defaultFileFilter).StringVar(&cfg.filterExtension)
-	application.Flag("failmissing", "Fail if a directory in the hierarchy is missing.").Short('m').
-		Envar("HIERARCHY_FAILMISSING").Default("false").BoolVar(&cfg.failMissing)
+	application.Flag("fail.missinghierarchy", "Fail if a hierarchy file is not found, otherwise merge all files in base folder.").
+		Envar("HIERARCHY_FAIL_MISSING_HIERARCHY").Default("false").BoolVar(&cfg.failMissingHierarchy)
+	application.Flag("fail.missingpath", "Fail if a directory in the hierarchy is missing.").
+		Envar("HIERARCHY_FAIL_MISSING_PATH").Default("false").BoolVar(&cfg.failMissingPath)
+	application.Flag("fail.missingvariable", "Fail if an environment variable defined in the final yaml is not found.").
+		Envar("HIERARCHY_FAIL_MISSING_VARIABLE").Default("false").BoolVar(&cfg.failMissingEnvVar)
 	application.Flag("debug", "Print debug output.").Short('d').
 		Envar("HIERARCHY_DEBUG").Default("false").BoolVar(&cfg.logDebug)
 	application.Flag("trace", "Prints a diff after processing each file. This generates A LOT of output.").
@@ -97,7 +108,23 @@ func checkForError(e error) {
 // of folders to be processed
 func processHierarchy(cfg config) []string {
 	hierarchy := []string{}
-	hierarchyFile, err := os.Open(cfg.hierarchyFile)
+	hierarchyFilePath := path.Join(cfg.basePath, cfg.hierarchyFile)
+
+	// If no hierarchy is found and failMissingHierarchy is 'false',
+	// then return the base directory as the only one to process
+	if _, err := os.Stat(hierarchyFilePath); err != nil && !cfg.failMissingHierarchy {
+		log.WithFields(log.Fields{
+			"path": hierarchyFilePath,
+			"base": cfg.basePath,
+		}).Warning("No hierarchy file found, only processing base directory for merge.")
+		hierarchy = append(hierarchy, cfg.basePath)
+		// Fail if the base directory does not exist
+		// Because something must have gone horribly wrong
+		cfg.failMissingPath = true
+		return hierarchy
+	}
+
+	hierarchyFile, err := os.Open(hierarchyFilePath)
 	checkForError(err)
 	defer hierarchyFile.Close()
 
@@ -113,7 +140,7 @@ func processHierarchy(cfg config) []string {
 		// Trim spaces and comments
 		includePath := strings.Split(line, "#")[0]
 		includePath = strings.TrimSpace(includePath)
-		includePath = replaceEnvironmentVariables(includePath)
+		includePath = replaceEnvironmentVariables(includePath, true)
 		// Process path
 		if len(includePath) > 0 {
 			includePath = path.Join(cfg.basePath, includePath)
@@ -126,7 +153,7 @@ func processHierarchy(cfg config) []string {
 					"abs_path": absPath,
 				}).Debug("Adding path to hierarchy")
 			} else {
-				if cfg.failMissing {
+				if cfg.failMissingPath {
 					log.WithFields(log.Fields{
 						"path": includePath,
 					}).Fatal("Hierarchy directory not found")
@@ -153,7 +180,7 @@ func processHierarchy(cfg config) []string {
 // and merges all files matching the pattern into the structure,
 // overwriting any existing values
 // and exports the merged content to a new YAML file
-func mergeFilesInHierarchy(hierarchy []string, fileFilter string, outputFile string) {
+func mergeFilesInHierarchy(hierarchy []string, fileFilter string, outputFile string, skipEnvVarContent bool, failMissingEnvVar bool) {
 	// Initialize variables
 	var data map[string]interface{}
 	counter := 0
@@ -200,7 +227,11 @@ func mergeFilesInHierarchy(hierarchy []string, fileFilter string, outputFile str
 		"path": outputFile,
 	}).Info("Writing output file")
 	yamlDoc, err := yaml.Marshal(&data)
-	err = ioutil.WriteFile(outputFile, yamlDoc, 0660)
+	yamlDocStr := string(yamlDoc)
+	if !skipEnvVarContent {
+		yamlDocStr = replaceEnvironmentVariables(yamlDocStr, failMissingEnvVar)
+	}
+	err = ioutil.WriteFile(outputFile, []byte(yamlDocStr), 0660)
 
 	checkForError(err)
 }
@@ -231,7 +262,7 @@ func getFiles(includePath string, fileFilter string) []string {
 
 // ReplaceEnvironmentVariables replaces all variable names in a string with the content defined on the OS
 // If a variable is not defined, it will fail to avoid any unintended results
-func replaceEnvironmentVariables(str string) string {
+func replaceEnvironmentVariables(str string, failMissing bool) string {
 	// Variables must be in the format ${NAME}
 	// Letters, numbers, and underscores are allowed
 	// Variable name must start with a letter
@@ -242,11 +273,18 @@ func replaceEnvironmentVariables(str string) string {
 		envVarName = strings.TrimSuffix(envVarName, "}")
 		envVar := os.Getenv(strings.ToUpper(envVarName))
 		if len(envVar) == 0 {
-			log.WithFields(log.Fields{
-				"name": envVarName,
-			}).Fatal("Environment variable not defined")
+			if failMissing {
+				log.WithFields(log.Fields{
+					"name": envVarName,
+				}).Fatal("Environment variable not defined")
+			} else {
+				log.WithFields(log.Fields{
+					"name": envVarName,
+				}).Warning("Environment variable not defined, skipping")
+			}
+		} else {
+			str = strings.ReplaceAll(str, varName, envVar)
 		}
-		str = strings.ReplaceAll(str, varName, envVar)
 	}
 	return str
 }
@@ -266,15 +304,16 @@ func main() {
 
 	version.Log()
 
-	cfg.basePath = path.Dir(cfg.hierarchyFile)
-
 	log.WithFields(log.Fields{
-		"hierarchyFile":     cfg.hierarchyFile,
-		"basePath":          cfg.basePath,
-		"outputFile":        cfg.outputFile,
-		"outputPermissions": cfg.outputFile,
-		"filterExtension":   cfg.filterExtension,
-		"failMissing":       cfg.failMissing,
+		"hierarchyFile":        cfg.hierarchyFile,
+		"basePath":             cfg.basePath,
+		"outputFile":           cfg.outputFile,
+		"outputPermissions":    cfg.outputFile,
+		"filterExtension":      cfg.filterExtension,
+		"failMissingHierarchy": cfg.failMissingHierarchy,
+		"failMissingPath":      cfg.failMissingPath,
+		"failMissingEnvVar":    cfg.failMissingEnvVar,
+		"skipEnvVarContent":    cfg.skipEnvVarContent,
 	}).Debug("Configuration settings")
 
 	// Make sure we remove the output file if it already exists
@@ -292,5 +331,5 @@ func main() {
 	hierarchy := processHierarchy(cfg)
 
 	// Proceed with merging configuration files
-	mergeFilesInHierarchy(hierarchy, cfg.filterExtension, cfg.outputFile)
+	mergeFilesInHierarchy(hierarchy, cfg.filterExtension, cfg.outputFile, cfg.skipEnvVarContent, cfg.failMissingEnvVar)
 }
