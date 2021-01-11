@@ -110,7 +110,7 @@ func processHierarchy(cfg config) []string {
 	hierarchy := []string{}
 	hierarchyFilePath := path.Join(cfg.basePath, cfg.hierarchyFile)
 
-	// If no hierarchy is found and failMissingHierarchy is not set,
+	// If no hierarchy is found and failMissingHierarchy is 'false',
 	// then return the base directory as the only one to process
 	if _, err := os.Stat(hierarchyFilePath); err != nil && !cfg.failMissingHierarchy {
 		log.WithFields(log.Fields{
@@ -118,8 +118,8 @@ func processHierarchy(cfg config) []string {
 			"base": cfg.basePath,
 		}).Warning("No hierarchy file found, only processing base directory for merge.")
 		hierarchy = append(hierarchy, cfg.basePath)
-		// We need to make sure we fail if the base directory does not exist either
-		// Because then something else must have gone horribly wrong
+		// Fail if the base directory does not exist
+		// Because something must have gone horribly wrong
 		cfg.failMissingPath = true
 		return hierarchy
 	}
@@ -229,7 +229,7 @@ func mergeFilesInHierarchy(hierarchy []string, fileFilter string, outputFile str
 	yamlDoc, err := yaml.Marshal(&data)
 	yamlDocStr := string(yamlDoc)
 	if !skipEnvVarContent {
-		yamlDocStr = replaceEnvironmentVariables(string(yamlDocStr), failMissingEnvVar)
+		yamlDocStr = replaceEnvironmentVariables(yamlDocStr, failMissingEnvVar)
 	}
 	err = ioutil.WriteFile(outputFile, []byte(yamlDocStr), 0660)
 

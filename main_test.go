@@ -194,7 +194,7 @@ func TestMissingHierarchySuccess(t *testing.T) {
 	assert.Equal(t, string(expected), string(result))
 }
 
-// TestMissingHierarchySuccess runs through the full functionality end-to-end
+// TestFailMissingHierarchy runs through the full functionality end-to-end
 // It test the case where no hierarchy.lst is provided,
 // meaning only the base directory is searched for files to merge
 // It compares the generated final file with one stored in git
@@ -235,7 +235,7 @@ func TestFailContentMissingEnvironmentVariable(t *testing.T) {
 		// process the hierarchy and get the list of include files
 		hierarchy := processHierarchy(cfg)
 
-		// Lets do the deed
+		// Merge files in hierarchy
 		mergeFilesInHierarchy(hierarchy, cfg.filterExtension, cfg.outputFile, false, true)
 
 		return
@@ -267,7 +267,7 @@ func TestContentMissingEnvironmentVariableSuccess(t *testing.T) {
 	os.Setenv("EXISTING_VARIABLE1", "one")
 	os.Setenv("EXISTING_VARIABLE2", "two")
 
-	// Lets do the deed
+	// merge files in hierarchy
 	mergeFilesInHierarchy(hierarchy, cfg.filterExtension, cfg.outputFile, false, false)
 
 	expected, err := ioutil.ReadFile("testdata/content-with-env/result/expected.yaml")
