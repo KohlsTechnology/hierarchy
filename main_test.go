@@ -68,7 +68,7 @@ func TestProcessHierarchySuccess(t *testing.T) {
 // It spawns a new process to determine the exit code of the application.
 // Anything other than a 1 is a problem
 // It uses the environment variable TEST_FAIL_EMPTY to signal the actual execution of the functionality
-func TestFailMissing(t *testing.T) {
+func TestFailMissingPath(t *testing.T) {
 	if os.Getenv("TEST_FAIL_EMPTY") == "1" {
 		cfg := cfgDefaults
 		cfg.basePath = "testdata/test1"
@@ -79,7 +79,7 @@ func TestFailMissing(t *testing.T) {
 		return
 	}
 
-	cmd := exec.Command(os.Args[0], "-test.run=TestFailMissing")
+	cmd := exec.Command(os.Args[0], "-test.run= TestFailMissingPath")
 	cmd.Env = append(os.Environ(), "TEST_FAIL_EMPTY=1")
 	output, err := cmd.CombinedOutput()
 	fmt.Printf("%s\n", output)
@@ -221,7 +221,7 @@ func TestFailMissingHierarchy(t *testing.T) {
 
 }
 
-// TestFailHierarchyMissingEnvironmentVariable ensures that the application is correctly failing
+// TestFailContentMissingEnvironmentVariable ensures that the application is correctly failing
 // If an environment variable specified in the yaml content is not defined.
 // It spawns a new process to determine the exit code of the application.
 // Anything other than a 1 is a problem
