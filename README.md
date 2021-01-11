@@ -19,7 +19,7 @@ The main goal of `Hierarchy` is to prevent the duplication of configuration data
 You can control the behavior of Hierarchy either through command line options or environment variables. The latter is especially helpful if you are running it inside a container.
 
 | Command Line Flag | Environment Variable | Default | Description |
-| --- | --- | --- | --- | --- |
+| --- | --- | --- | --- |
 | `-f, --file` | `HIERARCHY_FILE` | `hierarchy.lst` | Name of the hierarchy file. |
 | `-b, --base` | `HIERARCHY_BASE` | `./` | Base path. |
 | `-o, --output` | `HIERARCHY_OUTPUT` | `./output.yaml` | Path and name of the output file. |
