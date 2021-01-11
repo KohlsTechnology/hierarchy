@@ -119,6 +119,8 @@ func TestEnd2EndSuccess(t *testing.T) {
 // It spawns a new process to determine the exit code of the application.
 // Anything other than a 1 is a problem
 // It uses the environment variable TEST_FAIL_EMPTY to signal the actual execution of the functionality
+// Hierarchy will always fail if an environment variable as part of the hierarchy is not found.
+// This is intentional, to prevent unexpected behaviors.
 func TestFailHierarchyMissingEnvironmentVariable(t *testing.T) {
 	if os.Getenv("TEST_FAIL_EMPTY") == "1" {
 		cfg := cfgDefaults
