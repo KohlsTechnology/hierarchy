@@ -25,14 +25,13 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/imdario/mergo"
-	"gopkg.in/yaml.v3"
-
 	"github.com/KohlsTechnology/hierarchy/pkg/version"
+	"github.com/imdario/mergo"
 	"github.com/kylelemons/godebug/diff"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/alecthomas/kingpin.v2"
+	"gopkg.in/yaml.v3"
 )
 
 type config struct {
