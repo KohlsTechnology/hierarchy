@@ -226,6 +226,7 @@ func mergeFilesInHierarchy(hierarchy []string, fileFilter string, outputFile str
 		"path": outputFile,
 	}).Info("Writing output file")
 	yamlDoc, err := yaml.Marshal(&data)
+	checkForError(err)
 	yamlDocStr := string(yamlDoc)
 	if !skipEnvVarContent {
 		yamlDocStr = replaceEnvironmentVariables(yamlDocStr, failMissingEnvVar)
