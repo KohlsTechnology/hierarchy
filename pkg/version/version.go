@@ -36,7 +36,7 @@ func Print() {
 	fmt.Printf("hierarchy, version %v (branch: %v, revision: %v), build date: %v, go version: %v\n", Version, Branch, GitSHA1, BuildDate, runtime.Version())
 }
 
-// Print writes application version details to the log
+// Log writes application version details to the log
 func Log() {
 	log.WithFields(log.Fields{
 		"version":    Version,

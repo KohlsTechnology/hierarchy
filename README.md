@@ -1,7 +1,9 @@
 # Hierarchy
 
-[![Build Status](https://travis-ci.com/KohlsTechnology/prometheus_bigquery_remote_storage_adapter.svg?branch=master)](https://travis-ci.com/KohlsTechnology/hierarchy)
-[![Go Report Card](https://goreportcard.com/badge/github.com/KohlsTechnology/prometheus_bigquery_remote_storage_adapter)](https://goreportcard.com/report/github.com/KohlsTechnology/hierarchy) [![Join the chat at https://gitter.im/KohlsTechnology/hierarchy](https://badges.gitter.im/KohlsTechnology/hierarchy.svg)](https://gitter.im/KohlsTechnology/hierarchy?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Build Status](https://github.com/KohlsTechnology/hierarchy/actions/workflows/pipeline.yml/badge.svg?branch=master)]((https://github.com/KohlsTechnology/hierarchy/actions))
+[![Go Report Card](https://goreportcard.com/badge/github.com/KohlsTechnology/hierarchy)](https://goreportcard.com/report/github.com/KohlsTechnology/hierarchy)
+[![codecov](https://codecov.io/gh/KohlsTechnology/hierarchy/branch/master/graph/badge.svg)](https://codecov.io/gh/KohlsTechnology/hierarchy)
+[![Join the chat at https://gitter.im/KohlsTechnology/hierarchy](https://badges.gitter.im/KohlsTechnology/hierarchy.svg)](https://gitter.im/KohlsTechnology/hierarchy?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Hierarchy is a simple utility to merge a set of yaml or json files, based on a defined hierarchy. It is inspired by Hiera from Puppet.
 
