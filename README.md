@@ -95,7 +95,7 @@ See [CONTRIBUTING.md](.github/CONTRIBUTING.md) for details.
 
 
 ### Dependencies
-Go 1.16+
+Go 1.17+
 
 ### Compiling From Source
 ```
