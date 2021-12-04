@@ -3,7 +3,7 @@ module github.com/KohlsTechnology/hierarchy
 go 1.17
 
 require (
-	github.com/imdario/mergo v0.3.11
+	github.com/imdario/mergo v0.3.12
 	github.com/kylelemons/godebug v1.1.0
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.4.2
