@@ -11,9 +11,6 @@ github.com/davecgh/go-spew/spew
 # github.com/imdario/mergo v0.3.12
 ## explicit; go 1.13
 github.com/imdario/mergo
-# github.com/konsorten/go-windows-terminal-sequences v1.0.1
-## explicit
-github.com/konsorten/go-windows-terminal-sequences
 # github.com/kr/pretty v0.1.0
 ## explicit
 # github.com/kylelemons/godebug v1.1.0
@@ -25,8 +22,8 @@ github.com/pkg/errors
 # github.com/pmezard/go-difflib v1.0.0
 ## explicit
 github.com/pmezard/go-difflib/difflib
-# github.com/sirupsen/logrus v1.4.2
-## explicit
+# github.com/sirupsen/logrus v1.8.1
+## explicit; go 1.13
 github.com/sirupsen/logrus
 # github.com/stretchr/testify v1.5.1
 ## explicit; go 1.13
@@ -34,6 +31,7 @@ github.com/stretchr/testify/assert
 # golang.org/x/sys v0.0.0-20191220142924-d4481acd189f
 ## explicit; go 1.12
 golang.org/x/sys/unix
+golang.org/x/sys/windows
 # gopkg.in/alecthomas/kingpin.v2 v2.2.6
 ## explicit
 gopkg.in/alecthomas/kingpin.v2
