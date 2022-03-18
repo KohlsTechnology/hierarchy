@@ -5,9 +5,13 @@
 [![codecov](https://codecov.io/gh/KohlsTechnology/hierarchy/branch/master/graph/badge.svg)](https://codecov.io/gh/KohlsTechnology/hierarchy)
 [![Join the chat at https://gitter.im/KohlsTechnology/hierarchy](https://badges.gitter.im/KohlsTechnology/hierarchy.svg)](https://gitter.im/KohlsTechnology/hierarchy?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-Hierarchy is a simple utility to merge a set of yaml or json files, based on a defined hierarchy. It is inspired by Hiera from Puppet.
+## Project Deprication and Archival
+
+**As of March 18, 2022 this project is no longer maintained. This repository is being archived(marked as read only).**
 
 ## Installation
+
+Hierarchy is a simple utility to merge a set of yaml or json files, based on a defined hierarchy. It is inspired by Hiera from Puppet.
 
 You can either download a binary file from GitHub releases or [compile from source](#compiling-from-source).
 Note: `vendor/` files are intentionally included in GitHub repo to ensure deprecation of dependent packages do not cause service to break.
